@@ -2,6 +2,20 @@
 
 A modern Pomodoro timer application built with Next.js and TypeScript. FocusMate helps you maintain focus and boost productivity using the proven Pomodoro Technique with 25-minute work sessions.
 
+## Screenshots
+
+### Home Screen
+![Home Screen](public/screenshoots/1.png)
+
+### Focus Timer in Action
+![Focus Timer](public/screenshoots/2.png)
+
+### Break Time
+![Break Time](public/screenshoots/3.png)
+
+### Session Progress
+![Session Progress](public/screenshoots/4.png)
+
 ## Features
 
 - **Pomodoro Timer**: Classic 25-minute focus sessions with 5-minute short breaks and 25-minute long breaks after every 4 sessions
