@@ -213,9 +213,14 @@ const FocusTimer: React.FC<FocusTimerProps> = ({ settings, onEndSession, onOpenI
           ? shortBreakTrack.url
           : longBreakTrack.url;
 
-    if (audioRef.current.src !== nextSrc) {
+    // Check if source needs to change by comparing URLs
+    const currentSrc = audioRef.current.src;
+    const needsChange = !currentSrc.endsWith(nextSrc) && nextSrc !== currentSrc;
+
+    if (needsChange || !audioRef.current.src) {
       audioRef.current.pause();
       audioRef.current.src = nextSrc;
+      audioRef.current.load();
     }
 
     audioRef.current.loop = true;
