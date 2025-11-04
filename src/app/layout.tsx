@@ -8,6 +8,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://focusmate.vercel.app'),
   title: "FocusMate - Master Your Time, Boost Productivity",
   description: "A modern Pomodoro timer application built with Next.js. Master your time and boost productivity using the proven Pomodoro Technique with 25-minute focused work sessions.",
   keywords: ["pomodoro", "timer", "focus", "productivity", "time management", "pomodoro technique", "work timer"],
@@ -17,6 +18,7 @@ export const metadata: Metadata = {
     description: "A modern Pomodoro timer application. Master your time and boost productivity using the proven Pomodoro Technique with 25-minute focused work sessions.",
     type: "website",
     url: "https://focusmate.vercel.app",
+    siteName: "FocusMate",
     images: [
       {
         url: "/screenshoots/1.png",
