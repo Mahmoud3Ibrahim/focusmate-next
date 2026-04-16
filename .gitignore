@@ -44,6 +44,7 @@ next-env.d.ts
 # Other
 /focusmate-next
 .claude
+
 public/audio/39034061-glory-glory-166795.mp3
 public/audio/39034061-his-mercy-166520.mp3
 public/audio/39034061-the-grace-of-god-165502.mp3
