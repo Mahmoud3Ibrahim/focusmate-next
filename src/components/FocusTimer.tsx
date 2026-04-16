@@ -3,6 +3,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import MotivationBanner from './MotivationBanner';
 import MusicControls from './MusicControls';
+import {
+  musicTracks,
+  shortBreakTracks,
+  longBreakTracks,
+  resolveMusicUrl,
+  type MusicTrack,
+} from '../lib/music';
 
 interface FocusTimerProps {
   settings: {
@@ -20,50 +27,6 @@ const SHORT_BREAK_DURATION = 5 * 60; // 5 minutes
 const LONG_BREAK_DURATION = 25 * 60; // 25 minutes
 const SESSIONS_BEFORE_LONG_BREAK = 4;
 
-// Calm break music from Pixabay (royalty-free)
-type BreakTrack = {
-  name: string;
-  url: string;
-};
-
-const SHORT_BREAK_TRACKS: BreakTrack[] = [
-  {
-    name: 'Meditation Impromptu 01 - Deep Rest (7 min)',
-    url: 'https://incompetech.com/music/royalty-free/mp3-royaltyfree/Meditation%20Impromptu%2001.mp3',
-  },
-  {
-    name: 'Floating Cities - Ambient Dreams (6 min)',
-    url: 'https://incompetech.com/music/royalty-free/mp3-royaltyfree/Floating%20Cities.mp3',
-  },
-  {
-    name: 'Atlantean Twilight - Peaceful Waves (5.5 min)',
-    url: 'https://incompetech.com/music/royalty-free/mp3-royaltyfree/Atlantean%20Twilight.mp3',
-  },
-  {
-    name: 'Quasi Motion - Gentle Flow (6 min)',
-    url: 'https://incompetech.com/music/royalty-free/mp3-royaltyfree/Quasi%20Motion.mp3',
-  },
-];
-
-const LONG_BREAK_TRACKS: BreakTrack[] = [
-  {
-    name: 'Echoes of Time v2 - Extended Rest (12 min)',
-    url: 'https://incompetech.com/music/royalty-free/mp3-royaltyfree/Echoes%20of%20Time%20v2.mp3',
-  },
-  {
-    name: 'Soaring - Uplifting Ambient (13 min)',
-    url: 'https://incompetech.com/music/royalty-free/mp3-royaltyfree/Soaring.mp3',
-  },
-  {
-    name: 'Lightless Dawn - Deep Meditation (16 min)',
-    url: 'https://incompetech.com/music/royalty-free/mp3-royaltyfree/Lightless%20Dawn.mp3',
-  },
-  {
-    name: 'Meditation Impromptu 02 - Long Rest (8 min)',
-    url: 'https://incompetech.com/music/royalty-free/mp3-royaltyfree/Meditation%20Impromptu%2002.mp3',
-  },
-];
-
 const breakMotivations = [
   'Stand up for a quick stretch and loosen your shoulders.',
   'Drink some water and let your eyes rest on a distant point.',
@@ -79,21 +42,19 @@ const longBreakMessages = [
   'Make this long break count with movement, fuel, and rest.',
 ];
 
-import { musicTracks } from '../lib/music';
-
 const FocusTimer: React.FC<FocusTimerProps> = ({ settings, onEndSession, onOpenInfo }) => {
   const [phase, setPhase] = useState<Phase>('focus');
   const [timeLeft, setTimeLeft] = useState(FOCUS_DURATION);
   const [sessionsCompleted, setSessionsCompleted] = useState(0);
   const [cyclesCompleted, setCyclesCompleted] = useState(0);
   const [sessionLog, setSessionLog] = useState<string[]>([]);
-  const [currentMusic, setCurrentMusic] = useState(settings.music || musicTracks[0].url);
+  const [currentMusic, setCurrentMusic] = useState(() => resolveMusicUrl(settings.music));
   const [isMuted, setIsMuted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [volume, setVolume] = useState(70);
   const [breakMessage, setBreakMessage] = useState('');
-  const [shortBreakTrack, setShortBreakTrack] = useState<BreakTrack>(SHORT_BREAK_TRACKS[0]);
-  const [longBreakTrack, setLongBreakTrack] = useState<BreakTrack>(LONG_BREAK_TRACKS[0]);
+  const [shortBreakTrack, setShortBreakTrack] = useState<MusicTrack>(shortBreakTracks[0]);
+  const [longBreakTrack, setLongBreakTrack] = useState<MusicTrack>(longBreakTracks[0]);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const dingAudioRef = useRef<HTMLAudioElement>(null);
@@ -129,7 +90,7 @@ const FocusTimer: React.FC<FocusTimerProps> = ({ settings, onEndSession, onOpenI
   }, [sessionsCompleted, cyclesCompleted]);
 
   useEffect(() => {
-    setCurrentMusic(settings.music || musicTracks[0].url);
+    setCurrentMusic(resolveMusicUrl(settings.music));
   }, [settings.music]);
 
   // Countdown timer
@@ -248,11 +209,11 @@ const FocusTimer: React.FC<FocusTimerProps> = ({ settings, onEndSession, onOpenI
 
   useEffect(() => {
     if (phase === 'shortBreak') {
-      const track = SHORT_BREAK_TRACKS[Math.floor(Math.random() * SHORT_BREAK_TRACKS.length)];
+      const track = shortBreakTracks[Math.floor(Math.random() * shortBreakTracks.length)];
       setShortBreakTrack(track);
       setBreakMessage(breakMotivations[Math.floor(Math.random() * breakMotivations.length)]);
     } else if (phase === 'longBreak') {
-      const track = LONG_BREAK_TRACKS[Math.floor(Math.random() * LONG_BREAK_TRACKS.length)];
+      const track = longBreakTracks[Math.floor(Math.random() * longBreakTracks.length)];
       setLongBreakTrack(track);
       setBreakMessage(longBreakMessages[Math.floor(Math.random() * longBreakMessages.length)]);
     } else {
@@ -480,8 +441,9 @@ const FocusTimer: React.FC<FocusTimerProps> = ({ settings, onEndSession, onOpenI
               <select
                 value={phase === 'shortBreak' ? shortBreakTrack.url : longBreakTrack.url}
                 onChange={(e) => {
-                  const selectedTrack = (phase === 'shortBreak' ? SHORT_BREAK_TRACKS : LONG_BREAK_TRACKS)
-                    .find(t => t.url === e.target.value);
+                  const selectedTrack = (phase === 'shortBreak' ? shortBreakTracks : longBreakTracks).find(
+                    t => t.url === e.target.value
+                  );
                   if (selectedTrack) {
                     if (phase === 'shortBreak') {
                       setShortBreakTrack(selectedTrack);
@@ -492,7 +454,7 @@ const FocusTimer: React.FC<FocusTimerProps> = ({ settings, onEndSession, onOpenI
                 }}
                 className="w-full bg-gray-800/50 border border-gray-700 hover:border-teal-500/50 focus:border-teal-500 text-white text-sm rounded-xl focus:ring-2 focus:ring-teal-500/30 pl-3 pr-10 py-3 appearance-none cursor-pointer transition-all duration-300 font-medium"
               >
-                {(phase === 'shortBreak' ? SHORT_BREAK_TRACKS : LONG_BREAK_TRACKS).map(track => (
+                {(phase === 'shortBreak' ? shortBreakTracks : longBreakTracks).map(track => (
                   <option key={track.url} value={track.url} className="bg-gray-800">{track.name}</option>
                 ))}
               </select>

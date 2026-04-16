@@ -5,6 +5,7 @@ import HeroSection from '../components/HeroSection';
 import SettingsPanel from '../components/SettingsPanel';
 import FocusTimer from '../components/FocusTimer';
 import PomodoroInfoModal from '../components/PomodoroInfoModal';
+import { resolveMusicUrl } from '../lib/music';
 
 export type View = 'hero' | 'settings' | 'timer';
 
@@ -34,10 +35,17 @@ export default function Home() {
     try {
       const parsed = JSON.parse(savedSettings);
       if (parsed && typeof parsed === 'object') {
-        setSettings({
-          music: typeof parsed.music === 'string' ? parsed.music : '',
-          notifications: typeof parsed.notifications === 'boolean' ? parsed.notifications : true,
-        });
+        const rawMusic = typeof parsed.music === 'string' ? parsed.music : undefined;
+        const music = resolveMusicUrl(rawMusic);
+        const notifications =
+          typeof parsed.notifications === 'boolean' ? parsed.notifications : true;
+        setSettings({ music, notifications });
+        if (rawMusic !== music) {
+          window.localStorage.setItem(
+            'focusMateSettings',
+            JSON.stringify({ music, notifications })
+          );
+        }
       }
     } catch (error) {
       console.warn('Failed to parse saved settings, resetting.', error);

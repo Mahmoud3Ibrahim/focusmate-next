@@ -7,10 +7,10 @@ interface SettingsPanelProps {
   initialSettings: { music: string; notifications: boolean };
 }
 
-import { musicTracks } from '../lib/music';
+import { musicTracks, resolveMusicUrl } from '../lib/music';
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({ onStartSession, initialSettings }) => {
-  const [selectedMusic, setSelectedMusic] = useState(initialSettings.music || musicTracks[0].url);
+  const [selectedMusic, setSelectedMusic] = useState(() => resolveMusicUrl(initialSettings.music));
   const [notificationsEnabled, setNotificationsEnabled] = useState(initialSettings.notifications);
 
   const handleStart = () => {
