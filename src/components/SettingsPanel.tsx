@@ -13,25 +13,34 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onStartSession, initialSe
   const [selectedMusic, setSelectedMusic] = useState(() => resolveMusicUrl(initialSettings.music));
   const [notificationsEnabled, setNotificationsEnabled] = useState(initialSettings.notifications);
 
-  const handleStart = () => {
-    if (notificationsEnabled) {
-      if (typeof window !== 'undefined' && 'Notification' in window) {
-        Notification.requestPermission()
-          .then(permission => {
-            onStartSession({
-              music: selectedMusic,
-              notifications: permission === 'granted',
-            });
-          })
-          .catch(() => {
-            onStartSession({ music: selectedMusic, notifications: false });
-          });
-      } else {
-        onStartSession({ music: selectedMusic, notifications: false });
-      }
-    } else {
-      onStartSession({ music: selectedMusic, notifications: false });
+  const handleStart = async () => {
+    const music = selectedMusic;
+
+    if (!notificationsEnabled) {
+      onStartSession({ music, notifications: false });
+      return;
     }
+
+    if (typeof window === 'undefined' || !('Notification' in window) || !window.isSecureContext) {
+      onStartSession({ music, notifications: false });
+      return;
+    }
+
+    let notifications = false;
+    try {
+      const pending = Notification.requestPermission() as
+        | Promise<NotificationPermission>
+        | NotificationPermission;
+      const permission: NotificationPermission =
+        typeof pending === 'object' && pending !== null && 'then' in pending
+          ? await (pending as Promise<NotificationPermission>)
+          : (pending as NotificationPermission);
+      notifications = permission === 'granted';
+    } catch {
+      notifications = false;
+    }
+
+    onStartSession({ music, notifications });
   };
 
   return (

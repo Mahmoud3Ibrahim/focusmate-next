@@ -61,6 +61,7 @@ const FocusTimer: React.FC<FocusTimerProps> = ({ settings, onEndSession, onOpenI
   const comeBackAudioRef = useRef<HTMLAudioElement>(null);
   const longBreakBellAudioRef = useRef<HTMLAudioElement>(null);
   const volumeRef = useRef(volume);
+  const prevPhaseRef = useRef<Phase | null>(null);
 
   const sendNotification = useCallback((body: string) => {
     if (typeof window === 'undefined') return;
@@ -93,6 +94,20 @@ const FocusTimer: React.FC<FocusTimerProps> = ({ settings, onEndSession, onOpenI
     setCurrentMusic(resolveMusicUrl(settings.music));
   }, [settings.music]);
 
+  // Ding when a focus block starts (session start or return from a break)
+  useEffect(() => {
+    if (phase === 'focus') {
+      const prev = prevPhaseRef.current;
+      const shouldPlay =
+        prev === null || prev === 'shortBreak' || prev === 'longBreak';
+      if (shouldPlay && dingAudioRef.current) {
+        dingAudioRef.current.currentTime = 0;
+        dingAudioRef.current.play().catch(() => {});
+      }
+    }
+    prevPhaseRef.current = phase;
+  }, [phase]);
+
   // Countdown timer
   useEffect(() => {
     if (isPaused || timeLeft <= 0) return;
@@ -115,7 +130,8 @@ const FocusTimer: React.FC<FocusTimerProps> = ({ settings, onEndSession, onOpenI
       setSessionLog(prev => [...prev, `Session ${newSessionCount} completed`]);
 
       if (dingAudioRef.current) {
-        dingAudioRef.current.play();
+        dingAudioRef.current.currentTime = 0;
+        dingAudioRef.current.play().catch(() => {});
       }
 
       if (settings.notifications) {
